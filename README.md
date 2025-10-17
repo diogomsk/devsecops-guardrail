@@ -113,3 +113,5 @@ Após o build bem-sucedido, o GitHub Actions gera:
 -   `sbom-spdx.json` – inventário completo de dependências (SPDX format).
 
 Esse arquivo pode ser usado para auditoria, rastreabilidade e compliance.
+
+:)
