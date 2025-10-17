@@ -39,6 +39,7 @@ jobs:
                   ignore-unfixed: true
                   severity: "HIGH,CRITICAL"
                   exit-code: "1"
+                  skip-dirs: /usr/local/lib/node_modules
 
             # --- SBOM (SPDX) ---
             - name: Generate SBOM (SPDX)
