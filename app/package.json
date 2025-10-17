@@ -1,8 +1,11 @@
 {
-  "name": "hello-secure-world",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "node index.js"
-  }
+    "name": "hello-secure-world",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "overrides": {
+        "cross-spawn": "^7.0.5"
+    }
 }
