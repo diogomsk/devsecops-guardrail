@@ -1,0 +1,63 @@
+name: security-guardrail
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+jobs:
+    security:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            security-events: write
+            actions: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            # --- SCA / FS scan do código (Trivy) ---
+            - name: Trivy FS (repo vulnerabilities)
+              uses: aquasecurity/trivy-action@0.24.0
+              with:
+                  scan-type: "fs"
+                  scan-ref: "."
+                  format: "table"
+                  ignore-unfixed: true
+                  severity: "HIGH,CRITICAL"
+                  exit-code: "1"
+
+            # --- Build da imagem para escanear container ---
+            - name: Build Docker image
+              run: docker build -t local/hello-secure-world:pr ./app
+
+            - name: Trivy Image (container vulnerabilities)
+              uses: aquasecurity/trivy-action@0.24.0
+              with:
+                  image-ref: "local/hello-secure-world:pr"
+                  format: "table"
+                  ignore-unfixed: true
+                  severity: "HIGH,CRITICAL"
+                  exit-code: "1"
+
+            # --- SBOM (SPDX) ---
+            - name: Generate SBOM (SPDX)
+              uses: anchore/sbom-action@v0
+              with:
+                  path: ./app
+                  format: spdx-json
+                  output-file: sbom.spdx.json
+
+            - name: Upload SBOM artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: sbom-spdx
+                  path: sbom.spdx.json
+
+            # --- IaC (Terraform) ---
+            - name: tfsec (Terraform)
+              if: ${{ hashFiles('infra/**/*.tf') != '' }}
+              uses: aquasecurity/tfsec-action@v1.0.1
+              with:
+                  working_directory: infra
+                  additional_args: --concise-output --minimum-severity HIGH
